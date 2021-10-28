@@ -1,0 +1,36 @@
+@page "/"
+@using Marten
+@inject IDocumentStore store
+
+<h1>Hello, world!</h1>
+
+Welcome your character: @CharName.
+
+<SurveyPrompt Title="How is Blazor working for you?"/>
+
+@code {
+
+    public string CharName { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        using (var session = store.LightweightSession())
+        {
+            var user = new User { FirstName = "Sean", LastName = "Solo" };
+                        
+            session.Store(user);
+
+            await session.SaveChangesAsync();
+        }
+                    
+        using (var session = store.QuerySession())
+        {
+            var existing = await session
+                .Query<User>()
+                .FirstOrDefaultAsync(x => x.FirstName == "Sean" && x.LastName == "Solo");
+
+            this.CharName = existing.FirstName;
+        }
+    }
+
+}
